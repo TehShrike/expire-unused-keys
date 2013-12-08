@@ -3,15 +3,16 @@ expire-unused-keys
 
 Want to expire some resource after a certain amount of inactivity?  Check this shizzle out.
 
-Example 
+Example
 -----
 
 ```js
+	// Some levelUP db
+	var db = level('wat')
+	// Expire stuff after 15 seconds of inactivity
+	var expirer = new Expirer(15000, db)
 
-    // Expire stuff after 15 seconds of inactivity
-    var expirer = new Expirer(15) 
-
-    // Things are only interesting if they were active in the last 15 seconds
+	// Things are only interesting if they were active in the last 15 seconds
 	var areTheseThingsInteresting = {
 		'thing1': false,
 		'thing2': false
@@ -21,7 +22,7 @@ Example
 		areTheseThingsInteresting[thingKey] = true
 
 		// note that this thing was interacted with
-		expirer.emit('touch', thingKey)
+		expirer.touch(thingKey)
 	}
 
 	expirer.on('expire', function(thingKey) {
@@ -31,6 +32,9 @@ Example
 
 	activity('thing1')
 	activity('thing2')
+
+	t.ok(areTheseThingsInteresting['thing1'], "thing1 is interesting")
+	t.ok(areTheseThingsInteresting['thing2'], "thing2 is interesting")
 
 	setTimeout(function() {
 		activity('thing1')
@@ -48,6 +52,8 @@ The module returns a constructor function.  Pass how many seconds of inactivity 
 When a resource (identified by a string) is used, emit a touch event on the instantiated Expirer, passing in the string that identifies your resource.
 
 After enough time goes by without a resource being used, the instantiated Expirer will emit an "expire" event, passing in the expired resource's string as an argument.  You can then drop that resource out of the cache, or whatever it is that you're doing, you sexy beast you.
+
+Last-activity times are stored in the provided [levelUP](https://github.com/rvagg/node-levelup) database.  If you instantiate a new Expirer, it will emit expiration events for any items that have expired since the last time that database was looked at.
 
 License
 -----
