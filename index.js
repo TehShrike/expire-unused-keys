@@ -33,13 +33,18 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 		})
 	})
 
-	expirer.on("touch", function(key) {
+	expirer.on('touch', function touch(key) {
 		db.put(key, new Date().getTime())
+	})
+
+	expirer.on('forget', function forget(key) {
+		db.del(key)
 	})
 
 	var interval = setInterval(checkForExpiredKeys, checkIntervalMs || 1000)
 
 	expirer.touch = expirer.emit.bind(expirer, 'touch')
+	expirer.forget = expirer.emit.bind(expirer, 'forget')
 	expirer.stop = function stop() {
 		clearInterval(interval)
 	}

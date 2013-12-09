@@ -1,13 +1,16 @@
-expire-unused-keys
-=====
+So I'm writing this other library that needs to do some basic caching, right?  You know - the [first hard thing](http://martinfowler.com/bliki/TwoHardThings.html).  (For an idea of my work on the second hard thing, see the examples below.)
 
-Want to expire some resource after a certain amount of inactivity?  Check this shizzle out.
+It's not so much that I need flotsam deleted right away when it expires as I want the value to be refreshed every so often, and if that value goes a long enough time with out being accessed, theeeeen I'll drop it.
+
+To lesson the pain in this task, I need a library that will keep track of the last time was when I access something, and alert me if a certain amount of time passes without that thing being touched.  So, making the assumption that those "somethings" can be identified by a string, and the assertion that I will need these last-access-times to persist even after reopening the screen or re-launching the process, I wrote this-here code.
+
+It stores last-access times in a [LevelUP](https://github.com/rvagg/node-levelup) db - if you don't need persistence, throw [level-mem](https://github.com/Level/level-mem) at it.
 
 Example
------
+=====
 
 ```js
-	// Some levelUP db
+    // Some levelUP db
 	var db = level('wat')
 	// Expire stuff after 15 seconds of inactivity
 	var expirer = new Expirer(15000, db)
@@ -21,7 +24,7 @@ Example
 	var activity = function(thingKey) {
 		areTheseThingsInteresting[thingKey] = true
 
-		// note that this thing was interacted with
+		// note that this thing was fiddled with
 		expirer.touch(thingKey)
 	}
 
@@ -33,9 +36,6 @@ Example
 	activity('thing1')
 	activity('thing2')
 
-	t.ok(areTheseThingsInteresting['thing1'], "thing1 is interesting")
-	t.ok(areTheseThingsInteresting['thing2'], "thing2 is interesting")
-
 	setTimeout(function() {
 		activity('thing1')
 	}, 10 * 1000)
@@ -45,15 +45,28 @@ Example
 ```
 
 Usage
------
+=====
 
-The module returns a constructor function.  Pass how many seconds of inactivity it takes for something to expire.  The resulting object is an EventEmitter.
+The module returns a constructor function:
 
-When a resource (identified by a string) is used, emit a touch event on the instantiated Expirer, passing in the string that identifies your resource.
+## (timeoutMs, db[, checkIntervalMs])
+- timeoutMs: how many milliseconds the object will wait before it emits an 'expire' event for a touched key
+- db: a LevelUP data store of some kind
+- checkIntervalMs: right now, this library works by iterating over all keys and emitting expire events for any items that were last touched timeoutMs ago.  This value prescribes how often the keys should be iterated over.  Defaults to 1000.
 
-After enough time goes by without a resource being used, the instantiated Expirer will emit an "expire" event, passing in the expired resource's string as an argument.  You can then drop that resource out of the cache, or whatever it is that you're doing, you sexy beast you.
+The resulting object is an EventEmitter with the following functions as properties:
 
-Last-activity times are stored in the provided [levelUP](https://github.com/rvagg/node-levelup) database.  If you instantiate a new Expirer, it will emit expiration events for any items that have expired since the last time that database was looked at.
+## touch(key)
+
+Updates the "last touched" timestamp.  Expire events will not fire for a key until at least timeoutMs after the last time the key was touched.
+
+## forget(key)
+
+Forgets about a key.  Won't fire any expire events for it (unless you touch that key again).
+
+## stop()
+
+Shuts down any timeouts that are floating around, letting you shut down your server nicely and stuff.
 
 License
 -----

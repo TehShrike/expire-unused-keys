@@ -19,7 +19,7 @@ test("something closer to a real implementation, for the readme", function(t) {
 	var activity = function(thingKey) {
 		areTheseThingsInteresting[thingKey] = true
 
-		// note that this thing was interacted with
+		// note that this thing was fiddled with
 		expirer.touch(thingKey)
 	}
 
