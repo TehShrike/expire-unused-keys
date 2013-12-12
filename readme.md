@@ -2,7 +2,7 @@ So I'm writing this other library that needs to do some basic caching, right?  Y
 
 It's not so much that I need flotsam deleted right away when it expires as I want the value to be refreshed every so often, and if that value goes a long enough time with out being accessed, theeeeen I'll drop it.
 
-To lesson the pain in this task, I need a library that will keep track of the last time was when I access something, and alert me if a certain amount of time passes without that thing being touched.  So, making the assumption that those "somethings" can be identified by a string, and the assertion that I will need these last-access-times to persist even after reopening the screen or re-launching the process, I wrote this-here code.
+To lessen the pain in this task, I need a library that will keep track of what the last time was when I accessed something, and alert me if a certain amount of time passes without that thing being touched.  So, making the assumption that those "somethings" can be identified by a string, and the assertion that I will need these last-access-times to persist even after reopening the screen or re-launching the process, I wrote this-here code.
 
 It stores last-access times in a [LevelUP](https://github.com/rvagg/node-levelup) db - if you don't need persistence, throw [level-mem](https://github.com/Level/level-mem) at it.
 
