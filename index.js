@@ -20,15 +20,28 @@ function onlyLetOneTaskRunAtATime(fnTask) {
 module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 	var expirer = new EventEmitter()
 
+	var forgotten = []
+
 	var checkForExpiredKeys = onlyLetOneTaskRunAtATime(function check(done) {
-		var batch = db.batch()
 		var now = new Date().getTime()
+		var batchKeys = []
 		db.createReadStream().on('data', function(data) {
 			if (parseInt(data.value) + timeoutMs < now) {
-				expirer.emit('expire', data.key)
-				batch.del(data.key)
+				batchKeys.push(data.key)
 			}
 		}).on('end', function() {
+			var batch = db.batch()
+
+			// Need to make sure that none of these keys were "forgotten" since we opened the read stream
+			batchKeys.filter(function(key) {
+				return forgotten.indexOf(key) === -1
+			}).forEach(function(key) {
+				expirer.emit('expire', key)
+				batch.del(key)
+			})
+
+			forgotten = []
+
 			batch.write(done)
 		})
 	})
@@ -38,6 +51,7 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 	})
 
 	expirer.on('forget', function forget(key) {
+		forgotten.push(key)
 		db.del(key)
 	})
 
