@@ -10,9 +10,7 @@ function onlyLetOneTaskRunAtATime(fnTask) {
 	return function run() {
 		if (!running) {
 			running = true
-			var args = Array.prototype.slice.call(arguments, 0)
-			args.push(done)
-			fnTask.apply(null, args)
+			fnTask(done)
 		}
 	}
 }
