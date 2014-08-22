@@ -54,6 +54,7 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 	})
 
 	var interval = setInterval(checkForExpiredKeys, checkIntervalMs || 1000)
+	interval.unref && interval.unref()
 
 	expirer.touch = expirer.emit.bind(expirer, 'touch')
 	expirer.forget = expirer.emit.bind(expirer, 'forget')
