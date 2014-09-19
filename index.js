@@ -28,19 +28,18 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 				batchKeys.push(data.key)
 			}
 		}).on('end', function() {
-			var batch = db.batch()
-
 			// Need to make sure that none of these keys were "forgotten" since we opened the read stream
-			batchKeys.filter(function(key) {
-				return forgotten.indexOf(key) === -1
-			}).forEach(function(key) {
-				expirer.emit('expire', key)
-				batch.del(key)
-			})
+			db.batch(
+				batchKeys.filter(function(key) {
+					return forgotten.indexOf(key) === -1
+				}).map(function(key) {
+					expirer.emit('expire', key)
+					return {type: 'del', key: key}
+				}),
+				done
+			)
 
 			forgotten = []
-
-			batch.write(done)
 		})
 	})
 
