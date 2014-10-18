@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/TehShrike/expire-unused-keys.svg)](https://travis-ci.org/TehShrike/expire-unused-keys)
+
 So I'm writing this other library that needs to do some basic caching, right?  You know - the [first hard thing](http://martinfowler.com/bliki/TwoHardThings.html).  (For an idea of my work on the second hard thing, see the examples below.)
 
 It's not so much that I need flotsam deleted right away when it expires as I want the value to be refreshed every so often, and if that value goes a long enough time with out being accessed, theeeeen I'll drop it.
