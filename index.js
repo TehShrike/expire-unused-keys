@@ -20,6 +20,12 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 
 	var forgotten = []
 
+	function filterForgotten(keys) {
+		return keys.filter(function(key) {
+			return forgotten.indexOf(key) === -1
+		})
+	}
+
 	var checkForExpiredKeys = onlyLetOneTaskRunAtATime(function check(done) {
 		var now = new Date().getTime()
 		var batchKeys = []
@@ -29,21 +35,18 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 			}
 		}).on('end', function() {
 			// Need to make sure that none of these keys were "forgotten" since we opened the read stream
-			var expiringNow = batchKeys.filter(function(key) {
-				return forgotten.indexOf(key) === -1
-			})
+			var expiringNow = filterForgotten(batchKeys)
 			var batchObjects = expiringNow.map(function(key) {
 				return {type: 'del', key: key}
 			})
 
 			db.batch(batchObjects, function(err) {
 				if (!err) {
-					expiringNow.forEach(expirer.emit.bind(expirer, 'expire'))
+					filterForgotten(expiringNow).forEach(expirer.emit.bind(expirer, 'expire'))
 				}
+				forgotten = []
 				done(err)
 			})
-
-			forgotten = []
 		})
 	})
 
