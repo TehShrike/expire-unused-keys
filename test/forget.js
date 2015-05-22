@@ -1,5 +1,5 @@
 var Expirer = require('../')
-var test = require('tap').test
+var test = require('tape')
 var level = require('level-mem')
 
 test("forget an event, don't fire the expiration", function(t) {

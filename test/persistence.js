@@ -1,5 +1,5 @@
 var Expirer = require('../')
-var test = require('tap').test
+var test = require('tape')
 var level = require('level-mem')
 
 test('make sure event fires immediately with a new instantiation created later', function(t) {
@@ -37,6 +37,8 @@ test('make sure event fires at the correct time from a different instantiation',
 	expirer.stop()
 
 	var secondExpirer = new Expirer(100, db, 5)
+
+	t.timeoutAfter(1000)
 
 	t.plan(3)
 

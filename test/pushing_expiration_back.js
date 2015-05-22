@@ -1,5 +1,5 @@
 var Expirer = require('../')
-var test = require('tap').test
+var test = require('tape')
 var level = require('level-mem')
 
 test("make sure that calling touch pushes the expiration back", function(t) {
@@ -8,6 +8,7 @@ test("make sure that calling touch pushes the expiration back", function(t) {
 
 	var start = new Date().getTime()
 
+	t.timeoutAfter(10000)
 	t.plan(2)
 
 	var touches = 0

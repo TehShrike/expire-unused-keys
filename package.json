@@ -13,14 +13,15 @@
     "url": "https://github.com/TehShrike/expire-unused-keys.git"
   },
   "devDependencies": {
-    "tap": "~0.4.4",
-    "level-mem": "~0.18.0"
+    "level-mem": "~0.18.0",
+    "level-spaces": "^2.0.0",
+    "tape": "^4.0.0"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "tap ./test/*.js"
+    "test": "tape ./test/*.js"
   },
   "license": "WTFPL"
 }

@@ -1,5 +1,5 @@
 var Expirer = require('../')
-var test = require('tap').test
+var test = require('tape')
 var level = require('level-mem')
 
 test("Should fire a second time after being touched in an expire callback", function(t) {

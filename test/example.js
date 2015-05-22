@@ -1,4 +1,4 @@
-var test = require('tap').test
+var test = require('tape')
 var level = require('level-mem')
 
 var Expirer = require('../')
@@ -24,7 +24,6 @@ test("something closer to a real implementation, for the readme", function(t) {
 	}
 
 	expirer.on('expire', function(thingKey) {
-		console.log(thingKey + " expired!")
 		areTheseThingsInteresting[thingKey] = false
 	})
 

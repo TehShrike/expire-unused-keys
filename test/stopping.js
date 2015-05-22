@@ -1,5 +1,5 @@
 var Expirer = require('../')
-var test = require('tap').test
+var test = require('tape')
 var level = require('level-mem')
 
 test("stopping actually makes it stop", function(t) {
