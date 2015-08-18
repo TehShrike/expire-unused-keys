@@ -68,5 +68,7 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 		clearInterval(interval)
 	}
 
+	process.nextTick(checkForExpiredKeys)
+
 	return expirer
 }

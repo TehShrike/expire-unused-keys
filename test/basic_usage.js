@@ -52,6 +52,23 @@ function basicTest(t, dbFactory) {
 
 		setTimeout(expirer.stop, 2500)
 	})
+
+	t.test('an expired event should fire as soon as the expirer starts', function(t) {
+		var db = dbFactory()
+
+		var expiredKey = 'whatevs'
+
+		db.put(expiredKey, new Date().getTime() - 1500)
+
+		var expirer = new Expirer(1000, db)
+
+		expirer.on('expire', function(key) {
+			t.equal(key, expiredKey)
+			t.end()
+		})
+
+		t.timeoutAfter(100)
+	})
 }
 
 test('basic test with regular level-mem', function(t) {
