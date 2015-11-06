@@ -42,7 +42,7 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 
 			db.batch(batchObjects, function(err) {
 				if (!err) {
-					filterForgotten(expiringNow).forEach(expirer.emit.bind(expirer, 'expire'))
+					filterForgotten(expiringNow).forEach(function (key) { expirer.emit('expire', key) })
 				}
 				forgotten = []
 				done(err)
