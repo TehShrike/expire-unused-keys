@@ -51,7 +51,7 @@ test("something closer to a real implementation, for the readme", function(t) {
 	}, 16 * 1000)
 
 	setTimeout(function() {
-		t.notOk(areTheseThingsInteresting['thing1'], "thing1 is not interesting after 26 seconds")
+		t.notOk(areTheseThingsInteresting['thing1'], "thing1 is not interesting after 27 seconds")
 		expirer.stop()
-	}, 26 * 1000)
+	}, 27 * 1000)
 })
