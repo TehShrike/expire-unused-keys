@@ -3,11 +3,13 @@ var level = require('level-mem')
 
 var Expirer = require('../')
 
-test("something closer to a real implementation, for the readme", function(t) {
+test('repeatExpirations', function(t) {
 	// Some levelUP db
 	var db = level(':)')
 	// Expire stuff after 15 seconds of inactivity
-	var expirer = new Expirer(2000, db, {
+	var expirer = new Expirer({
+		timeoutMs: 2000,
+		db: db, 
 		checkIntervalMs: 100,
 		repeatExpirations: true
 	})
@@ -23,20 +25,33 @@ test("something closer to a real implementation, for the readme", function(t) {
 
 	expirer.touch('thing')
 
-	t.plan(5)
+	t.plan(7)
 
-	t.equal(counters.thing, 0, 'has not expired yet')
+	t.equal(counters.thing, 0, 'expired 0x')
 
 	setTimeout(function() {
-		t.equal(counters.thing, 1, 'expired once')
+		t.equal(counters.thing, 0, 'expired 0x')
 	}, 1000)
 
 	setTimeout(function() {
-		t.equal(counters.thing, 2, 'expired twice')
+		t.equal(counters.thing, 1, 'expired 1x')
 	}, 3000)
 
 	setTimeout(function() {
-		t.equal(counters.thing, 3, 'expired thrice')
-		expirer.stop()
+		t.equal(counters.thing, 2, 'expired 2x')
 	}, 5000)
+
+	setTimeout(function() {
+		t.equal(counters.thing, 3, 'expired 3x')
+	}, 7000)
+
+	setTimeout(function() {
+		t.equal(counters.thing, 4, 'expired 4x')
+	}, 9000)
+
+	setTimeout(function() {
+		t.equal(counters.thing, 5, 'expired 5x')
+		expirer.stop()
+		t.end()
+	}, 11000)
 })
