@@ -8,9 +8,9 @@ test('repeatExpirations', function(t) {
 	var db = level(':)')
 	// Expire stuff after 15 seconds of inactivity
 	var expirer = new Expirer({
-		timeoutMs: 2000,
+		timeoutMs: 200,
 		db: db, 
-		checkIntervalMs: 100,
+		checkIntervalMs: 20,
 		repeatExpirations: true
 	})
 
@@ -31,27 +31,27 @@ test('repeatExpirations', function(t) {
 
 	setTimeout(function() {
 		t.equal(counters.thing, 0, 'expired 0x')
-	}, 1000)
+	}, 100)
 
 	setTimeout(function() {
 		t.equal(counters.thing, 1, 'expired 1x')
-	}, 3000)
+	}, 300)
 
 	setTimeout(function() {
 		t.equal(counters.thing, 2, 'expired 2x')
-	}, 5000)
+	}, 500)
 
 	setTimeout(function() {
 		t.equal(counters.thing, 3, 'expired 3x')
-	}, 7000)
+	}, 700)
 
 	setTimeout(function() {
 		t.equal(counters.thing, 4, 'expired 4x')
-	}, 9000)
+	}, 900)
 
 	setTimeout(function() {
 		t.equal(counters.thing, 5, 'expired 5x')
 		expirer.stop()
 		t.end()
-	}, 11000)
+	}, 1100)
 })

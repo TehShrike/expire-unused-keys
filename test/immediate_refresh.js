@@ -9,6 +9,7 @@ test("Should fire a second time after being touched in an expire callback", func
 	expirer.emit('touch', key)
 
 	t.plan(2)
+	t.timeoutAfter(3000)
 
 	var done = false
 
@@ -22,12 +23,4 @@ test("Should fire a second time after being touched in an expire callback", func
 			t.end()
 		})
 	})
-
-	setTimeout(function() {
-		if (!done) {
-			t.fail('both expirations should happen within three seconds')
-			expirer.stop()
-			t.end()
-		}
-	}, 3000)
 })

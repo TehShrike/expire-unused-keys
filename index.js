@@ -16,10 +16,12 @@ function onlyLetOneTaskRunAtATime(fnTask) {
 }
 
 module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
+	var repeatExpirations = false
+	
 	if (typeof timeoutMs === 'object') { // options mode
 		db = timeoutMs.db
 		checkIntervalMs = timeoutMs.checkIntervalMs
-		var repeatExpirations = timeoutMs.repeatExpirations
+		repeatExpirations = timeoutMs.repeatExpirations
 		timeoutMs = timeoutMs.timeoutMs
 	}
 	var expirer = new EventEmitter()
