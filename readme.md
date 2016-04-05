@@ -51,10 +51,17 @@ Usage
 
 The module returns a constructor function:
 
-## (timeoutMs, db[, checkIntervalMs])
+```js
+var expireUnusedKeys = require('expire-unused-keys')
+```
+
+## expireUnusedKeys(timeoutMs, db, [checkIntervalMs]) - *Backwards compatibility*
+## expireUnusedKeys({ timeoutMs, db, [checkIntervalMs,] [repeatExpirations] })
+
 - timeoutMs: how many milliseconds the object will wait before it emits an 'expire' event for a touched key
 - db: a LevelUP data store of some kind
 - checkIntervalMs: right now, this library works by iterating over all keys and emitting expire events for any items that were last touched timeoutMs ago.  This value prescribes how often the keys should be iterated over.  Defaults to 1000.
+- repeatExpirations: set to true to emit 'expire' events for keys every `timeoutMs` milliseconds. By default, keys will be forgotten at the first 'expire' event.
 
 The resulting object is an EventEmitter with the following functions as properties:
 
