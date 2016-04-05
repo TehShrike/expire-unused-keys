@@ -77,6 +77,8 @@ Forgets about a key.  Won't fire any expire events for it (unless you touch that
 
 Creates it if it doesn't exist yet. If you called `touch` on the key without calling `forget` since, this will not create the key. If you have never called `touch`, or have called `forget` since, this will update the timestamp just like calling `touch`.
 
+*Note:* It is possible to create a race condition if you call `touch` and `createIfNotExists` around the same time on a key that doesn't exist yet. In that case, the key will be created, and the timestamp will be updated once or twice around the same time.
+
 ## stop()
 
 Shuts down any timeouts that are floating around, letting you shut down your server nicely and stuff.
