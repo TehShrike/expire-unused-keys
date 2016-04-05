@@ -75,7 +75,7 @@ Forgets about a key.  Won't fire any expire events for it (unless you touch that
 
 ## createIfNotExists(key)
 
-Creates it if it doesn't exist yet. If you called `touch` on the key without calling `forget` since, this will not create the key. If you have never called `touch`, or have called `forget` since, this will update the timestape just like calling `touch`.
+Creates it if it doesn't exist yet. If you called `touch` on the key without calling `forget` since, this will not create the key. If you have never called `touch`, or have called `forget` since, this will update the timestamp just like calling `touch`.
 
 ## stop()
 
