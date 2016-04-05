@@ -79,7 +79,6 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 	expirer.createIfNotExists = function createIfNotExists(key) {
 		db.get(key, function (err, value) {
 			if (err && err.notFound) {
-				console.log('creating ' + key)
 				expirer.emit('touch', key)
 			}
 		})
