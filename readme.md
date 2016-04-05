@@ -73,6 +73,10 @@ Updates the "last touched" timestamp.  Expire events will not fire for a key unt
 
 Forgets about a key.  Won't fire any expire events for it (unless you touch that key again).
 
+## createIfNotExists(key)
+
+Creates it if it doesn't exist yet. If you called `touch` on the key without calling `forget` since, this will not create the key. If you have never called `touch`, or have called `forget` since, this will update the timestape just like calling `touch`.
+
 ## stop()
 
 Shuts down any timeouts that are floating around, letting you shut down your server nicely and stuff.
