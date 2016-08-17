@@ -69,7 +69,7 @@ The resulting object is an EventEmitter with the following functions as properti
 
 Updates the "last touched" timestamp.  Expire events will not fire for a key until at least timeoutMs after the last time the key was touched.
 
-## forget(key)
+## forget(key[, cb])
 
 Forgets about a key.  Won't fire any expire events for it (unless you touch that key again).
 

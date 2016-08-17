@@ -15,9 +15,11 @@ function onlyLetOneTaskRunAtATime(fnTask) {
 	}
 }
 
+function noop() {}
+
 module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 	var repeatExpirations = false
-	
+
 	if (typeof timeoutMs === 'object') { // options mode
 		db = timeoutMs.db
 		checkIntervalMs = timeoutMs.checkIntervalMs
@@ -66,10 +68,12 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 		db.put(key, new Date().getTime())
 	})
 
-	expirer.on('forget', function forget(key) {
+	function forget(key, cb) {
 		forgotten.push(key)
-		db.del(key)
-	})
+		db.del(key, cb)
+	}
+
+	expirer.on('forget', forget)
 
 	var interval = setInterval(checkForExpiredKeys, checkIntervalMs || 1000)
 	interval.unref && interval.unref()
