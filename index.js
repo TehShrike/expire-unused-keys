@@ -80,6 +80,13 @@ module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
 
 	expirer.touch = expirer.emit.bind(expirer, 'touch')
 	expirer.forget = expirer.emit.bind(expirer, 'forget')
+	expirer.createIfNotExists = function createIfNotExists(key) {
+		db.get(key, function (err, value) {
+			if (err && err.notFound) {
+				expirer.emit('touch', key)
+			}
+		})
+	}
 	expirer.stop = function stop() {
 		clearInterval(interval)
 	}
