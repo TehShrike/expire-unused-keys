@@ -1,13 +1,14 @@
+require('loud-rejection')()
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
 
 test('make sure event fires immediately with a new instantiation created later', function(t) {
-	var db = level('wat')
+	var db = level()
 
 	t.plan(1)
 
-	var expirer = new Expirer(2000, db, 10)
+	var expirer = new Expirer({ timeoutMs: 2000, db, checkIntervalMs: 10 })
 	expirer.touch('thingy')
 	expirer.on('expire', function(key) {
 		t.ok(false, 'Expirer has been stopped and should not emit any expire events')
@@ -15,7 +16,7 @@ test('make sure event fires immediately with a new instantiation created later',
 	expirer.stop()
 
 	setTimeout(function() {
-		var secondExpirer = new Expirer(1000, db, 10)
+		var secondExpirer = new Expirer({ timeoutMs: 1000, db, checkIntervalMs: 10 })
 		secondExpirer.on('expire', function(key) {
 			t.equal('thingy', key, 'Same key as was touched')
 		})
@@ -29,14 +30,14 @@ test('make sure event fires immediately with a new instantiation created later',
 })
 
 test('make sure event fires at the correct time from a different instantiation', function(t) {
-	var db = level('wat')
+	var db = level()
 	var started = new Date().getTime()
-	var expirer = new Expirer(100, db, 5)
+	var expirer = new Expirer({ timeoutMs: 100, db, checkIntervalMs: 5 })
 
 	expirer.touch('sup')
 	expirer.stop()
 
-	var secondExpirer = new Expirer(100, db, 5)
+	var secondExpirer = new Expirer({ timeoutMs: 100, db, checkIntervalMs: 5 })
 
 	t.timeoutAfter(1000)
 

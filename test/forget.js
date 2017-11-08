@@ -1,66 +1,67 @@
+require('loud-rejection')()
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
+const delay = require('delay')
 
-test("forget an event, don't fire the expiration", function(t) {
-	var expirer = new Expirer(100, level('wat'), 1)
+test("forget an event, don't fire the expiration", async t => {
+	const expirer = new Expirer({ timeoutMs: 100, db: level(), checkIntervalMs: 1 })
 
-	var remembered = "lol I'm a key"
-	var forgotten = "another key, what's this"
+	const remembered = "lol I'm a key"
+	const forgotten = "another key, what's this"
 
 	expirer.touch(remembered)
 	expirer.touch(forgotten)
 
 	t.plan(2)
 
-	var started = new Date().getTime()
+	const started = new Date().getTime()
 
 	expirer.on('expire', function(key) {
 		t.equal(remembered, key, "It's the key we were expecting")
-		var now = new Date().getTime()
+		const now = new Date().getTime()
 		t.ok(now >= started + 100, "The event was fired at least 100ms after we started")
 	})
 
-	setTimeout(function() {
-		expirer.forget(forgotten)
-	}, 20)
+	await delay(20)
 
-	setTimeout(function() {
-		expirer.stop()
-		t.end()
-	}, 150)
+	expirer.forget(forgotten)
+
+	await delay(130)
+
+	expirer.stop()
+	t.end()
 })
 
-test("forget an event with an async callback", function(t) {
-	var expirer = new Expirer(100, level('wat'), 1)
+test("forget an event with an async callback", async t => {
+	const expirer = new Expirer({ timeoutMs: 100, db: level(), checkIntervalMs: 1 })
 
-	var remembered = "lol I'm a key"
-	var forgotten = "another key, what's this"
+	const remembered = "lol I'm a key"
+	const forgotten = "another key, what's this"
 
 	expirer.touch(remembered)
 	expirer.touch(forgotten)
 
-	t.plan(4)
+	t.plan(3)
 
-	var started = new Date().getTime()
+	const started = new Date().getTime()
+	let expired = false
 
-	expirer.on('expire', function(key) {
+	expirer.on('expire', key => {
 		t.equal(remembered, key, "It's the key we were expecting")
-		var now = new Date().getTime()
+		const now = new Date().getTime()
 		t.ok(now >= started + 100, "The event was fired at least 100ms after we started")
+		expired = true
 	})
-	var theForgetCallbackWasCalled = false
 
-	setTimeout(function() {
-		expirer.forget(forgotten, function(err) {
-			t.error(err)
-			theForgetCallbackWasCalled = true
-		})
-	}, 20)
+	await delay(20)
 
-	setTimeout(function() {
-		t.ok(theForgetCallbackWasCalled)
-		expirer.stop()
-		t.end()
-	}, 150)
+	await expirer.forget(forgotten)
+
+	await delay(130)
+
+	t.ok(expired)
+
+	expirer.stop()
+	t.end()
 })

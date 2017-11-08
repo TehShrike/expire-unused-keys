@@ -1,97 +1,92 @@
-var EventEmitter = require('events').EventEmitter
+const makeEmitter = require('better-emitter')
+const nextTick = require('iso-next-tick')
 
 function onlyLetOneTaskRunAtATime(fnTask) {
-	var running = false
+	let running = false
 
-	function done() {
-		running = false
-	}
-
-	return function run() {
+	return async function run() {
 		if (!running) {
 			running = true
-			fnTask(done)
+			await fnTask()
+			running = false
 		}
 	}
 }
 
-function noop() {}
-
-module.exports = function Expirer(timeoutMs, db, checkIntervalMs) {
-	var repeatExpirations = false
-
-	if (typeof timeoutMs === 'object') { // options mode
-		db = timeoutMs.db
-		checkIntervalMs = timeoutMs.checkIntervalMs
-		repeatExpirations = timeoutMs.repeatExpirations
-		timeoutMs = timeoutMs.timeoutMs
-	}
-	var expirer = new EventEmitter()
-
-	var forgotten = []
+module.exports = function Expirer({ timeoutMs, db, checkIntervalMs = 1000, repeatExpirations = false }) {
+	const forgotten = new Set()
 
 	function filterForgotten(keys) {
-		return keys.filter(function(key) {
-			return forgotten.indexOf(key) === -1
-		})
+		return keys.filter(key => !forgotten.has(key))
 	}
 
-	var checkForExpiredKeys = onlyLetOneTaskRunAtATime(function check(done) {
-		var now = new Date().getTime()
-		var batchKeys = []
-		db.createReadStream().on('data', function(data) {
-			if (parseInt(data.value) + timeoutMs < now) {
-				batchKeys.push(data.key)
-			}
-		}).on('end', function() {
-			// Need to make sure that none of these keys were "forgotten" since we opened the read stream
-			var expiringNow = filterForgotten(batchKeys)
-			var batchObjects = expiringNow.map(function(key) {
-				if (repeatExpirations) {
-					return { type: 'put', key: key, value: new Date().getTime() }
-				} else {
-					return { type: 'del', key: key }
-				}
-			})
+	const checkForExpiredKeys = onlyLetOneTaskRunAtATime(async() => {
+		const now = new Date().getTime()
 
-			db.batch(batchObjects, function(err) {
-				if (!err) {
-					filterForgotten(expiringNow).forEach(function (key) { expirer.emit('expire', key) })
+		const batchKeys = await new Promise(resolve => {
+			const batchKeys = []
+			db.createReadStream().on('data', function(data) {
+				if (parseInt(data.value) + timeoutMs < now) {
+					batchKeys.push(data.key)
 				}
-				forgotten = []
-				done(err)
-			})
+			}).on('end', () => resolve(batchKeys))
 		})
+
+		// Need to make sure that none of these keys were "forgotten" since we opened the read stream
+		const expiringNow = filterForgotten(batchKeys)
+		const batchObjects = expiringNow.map(key => {
+			return repeatExpirations
+				? { type: 'put', key: key, value: new Date().getTime() }
+				: { type: 'del', key: key }
+		})
+
+		try {
+			await db.batch(batchObjects)
+
+			filterForgotten(expiringNow)
+				.forEach(key => expirer.emit('expire', key))
+
+			forgotten.clear()
+		} catch (err) {
+			forgotten.clear()
+			throw err
+		}
 	})
 
-	expirer.on('touch', function touch(key) {
-		db.put(key, new Date().getTime())
-	})
-
-	function forget(key, cb) {
-		forgotten.push(key)
-		db.del(key, cb)
+	async function touch(key) {
+		await db.put(key, new Date().getTime())
+		expirer.emit('touch', key)
 	}
 
-	expirer.on('forget', forget)
+	async function forget(key) {
+		forgotten.add(key)
+		await db.del(key)
+		expirer.emit('forget', key)
+	}
 
-	var interval = setInterval(checkForExpiredKeys, checkIntervalMs || 1000)
+	const interval = setInterval(checkForExpiredKeys, checkIntervalMs)
 	interval.unref && interval.unref()
 
-	expirer.touch = expirer.emit.bind(expirer, 'touch')
-	expirer.forget = expirer.emit.bind(expirer, 'forget')
-	expirer.createIfNotExists = function createIfNotExists(key) {
-		db.get(key, function (err, value) {
-			if (err && err.notFound) {
-				expirer.emit('touch', key)
+	const expirer = makeEmitter({
+		touch,
+		forget,
+		async createIfNotExists(key) {
+			try {
+				await db.get(key)
+			} catch (err) {
+				if (err.notFound) {
+					touch(key)
+				} else {
+					throw err
+				}
 			}
-		})
-	}
-	expirer.stop = function stop() {
-		clearInterval(interval)
-	}
+		},
+		stop() {
+			clearInterval(interval)
+		},
+	})
 
-	process.nextTick(checkForExpiredKeys)
+	nextTick(checkForExpiredKeys)
 
 	return expirer
 }

@@ -1,9 +1,10 @@
+require('loud-rejection')()
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
 
 test("make sure that calling touch pushes the expiration back", function(t) {
-	var expirer = new Expirer(5000, level('wat'))
+	var expirer = new Expirer({ timeoutMs: 5000, db: level() })
 	var key = 'yo'
 
 	var start = new Date().getTime()
@@ -32,7 +33,7 @@ test("make sure that calling touch pushes the expiration back", function(t) {
 		expirer.touch(key)
 		setTimeout(function() {
 			// After another 1.5 seconds (3.5 total), touch it again
-			expirer.emit('touch', key)
+			expirer.touch(key)
 		}, 1500)
 	}, 2000)
 })

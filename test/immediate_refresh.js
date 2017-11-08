@@ -1,17 +1,16 @@
+require('loud-rejection')()
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
 
 test("Should fire a second time after being touched in an expire callback", function(t) {
-	var expirer = new Expirer(500, level('wat'))
+	var expirer = new Expirer({ timeoutMs: 500, db: level() })
 	var key = "lol I'm a key"
 
-	expirer.emit('touch', key)
+	expirer.touch(key)
 
 	t.plan(2)
 	t.timeoutAfter(3000)
-
-	var done = false
 
 	expirer.once('expire', function() {
 		t.pass('called the first time')
@@ -19,7 +18,6 @@ test("Should fire a second time after being touched in an expire callback", func
 		expirer.once('expire', function() {
 			t.pass('called the second time')
 			expirer.stop()
-			done = true
 			t.end()
 		})
 	})
