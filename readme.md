@@ -64,7 +64,7 @@ const expireUnusedKeys = require('expire-unused-keys')
 ## `expirer = expireUnusedKeys({ timeoutMs, db, [checkIntervalMs,] [repeatExpirations] })`
 
 - timeoutMs: how many milliseconds the object will wait before it emits an 'expire' event for a touched key
-- db: a LevelUP data store of some kind
+- db: a LevelUP data store of some kind.  Must be wrapped by `encoding-down` or some other encoder that is cool with strings and numbers.
 - checkIntervalMs: right now, this library works by iterating over all keys and emitting expire events for any items that were last touched timeoutMs ago.  This value prescribes how often the keys should be iterated over.  Defaults to 1000.
 - repeatExpirations: set to true to emit 'expire' events for keys every `timeoutMs` milliseconds. By default, keys will be forgotten at the first 'expire' event.
 
