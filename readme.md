@@ -21,8 +21,10 @@ It stores last-access times in a [LevelUP](https://github.com/rvagg/node-levelup
 # Example
 
 ```js
+const expireUnusedKeys = require('expire-unused-keys')
+
 // Expire stuff after 15 seconds of inactivity
-const expirer = new Expirer(15 * 1000, someLevelUpDb)
+const expirer = expireUnusedKeys({ timeoutMs: 15 * 1000, db: someLevelUpDb })
 
 // Things are only interesting if they were active in the last 15 seconds
 const areTheseThingsInteresting = {
@@ -30,14 +32,14 @@ const areTheseThingsInteresting = {
 	'thing2': false
 }
 
-const activity = function(thingKey) {
+function activity(thingKey) {
 	areTheseThingsInteresting[thingKey] = true
 
 	// note that this thing was fiddled with
 	expirer.touch(thingKey)
 }
 
-expirer.on('expire', function(thingKey) {
+expirer.on('expire', thingKey => {
 	console.log(thingKey + " expired!")
 	areTheseThingsInteresting[thingKey] = false
 })
@@ -45,9 +47,7 @@ expirer.on('expire', function(thingKey) {
 activity('thing1')
 activity('thing2')
 
-setTimeout(function() {
-	activity('thing1')
-}, 10 * 1000)
+setTimeout(() => activity('thing1'), 10 * 1000)
 
  // thing1 will expire after 25 seconds after the first time it was touched
  // thing2 will expire 15 seconds after the first time it was touched
