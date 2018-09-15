@@ -1,9 +1,10 @@
+require('loud-rejection')()
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
 
 test("stopping actually makes it stop", function(t) {
-	var expirer = new Expirer(500, level('wat'))
+	var expirer = new Expirer({ timeoutMs: 500, db: level() })
 	t.plan(2)
 
 	expirer.on('expire', function() {

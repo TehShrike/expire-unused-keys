@@ -1,19 +1,19 @@
+require('loud-rejection')()
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
 
 test('an expired event should only have 1 argument', function(t) {
 	t.timeoutAfter(2000)
 	t.plan(2)
 
-	var expirer = new Expirer(100, level('roflcopter'))
+	var expirer = new Expirer({ timeoutMs: 100, db: level() })
 
-	expirer.emit('touch', 'hello there')
+	expirer.touch('hello there')
 
-	expirer.on('expire', function() {
-		var argArray = Array.prototype.slice.call(arguments)
-		t.equal(argArray.length, 1, 'should only have 1 argument')
-		t.equal(argArray[0], 'hello there')
+	expirer.on('expire', (...args) => {
+		t.equal(args.length, 1, 'should only have 1 argument')
+		t.equal(args[0], 'hello there')
 
 		expirer.stop()
 		t.end()

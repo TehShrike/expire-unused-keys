@@ -1,27 +1,27 @@
+require('loud-rejection')()
+const makeDb = require('./helpers/level-mem')
 var Expirer = require('../')
 var test = require('tape')
-var level = require('level-mem')
 
-test('create key if it doesn\'t exist yet', function(t) {
+test('create key if it doesn\'t exist yet', async function(t) {
 	var expirer = new Expirer({
 		timeoutMs: 5000,
-		db: level('wat')
+		db: makeDb('watever'),
 	})
 
 	t.plan(1)
 
-	expirer.touch('old')
+	await expirer.touch('old')
 
-	expirer.once('touch', function(key) {
+	expirer.once('touch', key => {
+		console.log('touched', key)
 		t.equal(key, 'new')
 		t.end()
 	})
 
-	setTimeout(function () {
-		expirer.createIfNotExists('old')
-	}, 100)
-	
-	setTimeout(function () {
-		expirer.createIfNotExists('new')
-	}, 200)
+	console.log('here')
+
+	await expirer.createIfNotExists('old')
+
+	await expirer.createIfNotExists('new')
 })

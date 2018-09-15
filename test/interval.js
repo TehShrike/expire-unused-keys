@@ -1,22 +1,23 @@
+require('loud-rejection')()
 var test = require('tape')
-var level = require('level-mem')
+const level = require('./helpers/level-mem')
 
 var Expirer = require('../')
 
 test('repeatExpirations', function(t) {
 	// Some levelUP db
-	var db = level(':)')
+	var db = level()
 	// Expire stuff after 15 seconds of inactivity
 	var expirer = new Expirer({
 		timeoutMs: 200,
-		db: db, 
+		db: db,
 		checkIntervalMs: 20,
-		repeatExpirations: true
+		repeatExpirations: true,
 	})
 
 	// Things are only interesting if they were active in the last 15 seconds
 	var counters = {
-		thing: 0
+		thing: 0,
 	}
 
 	expirer.on('expire', function(thingKey) {
