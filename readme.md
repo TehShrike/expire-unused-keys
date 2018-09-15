@@ -10,9 +10,9 @@ To lessen the pain in this task, I need a library that will keep track of what t
 
 It stores last-access times in a [LevelUP](https://github.com/rvagg/node-levelup) db - if you don't need persistence, throw [level-mem](https://github.com/Level/level-mem) at it.
 
-## breaking changes: version 2.x
+## breaking changes: expire-unused-keys@2.x
 
-- Only tested with LevelUP 2.x
+- Only tested with LevelUP 3.x (should work fine on 2.x though)
 - Ordered arguments to the constructor are no longer accepted, you gotta pass in an object
 - Emitting events on the expirer object can no longer be done as a proxy for calling the functions
 - All functions return promises
